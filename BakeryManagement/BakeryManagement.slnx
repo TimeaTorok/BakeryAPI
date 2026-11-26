@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="BakeryManagement.Application/BakeryManagement.Application.csproj" />
+  <Project Path="BakeryManagement.Domain/BakeryManagement.Domain.csproj" />
+  <Project Path="BakeryManagement.Infrastructure/BakeryManagement.Infrastructure.csproj" />
+  <Project Path="BakeryManagement/BakeryManagement.API.csproj" />
+</Solution>
