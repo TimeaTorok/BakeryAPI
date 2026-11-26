@@ -1,5 +1,8 @@
 using BakeryManagement.API.Middleware;
 using BakeryManagement.Application.Interfaces.Repositories;
+using BakeryManagement.Application.Interfaces.Services;
+using BakeryManagement.Application.Mapping;
+using BakeryManagement.Application.Services;
 using BakeryManagement.Infrastructure.Persistence;
 using BakeryManagement.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +26,15 @@ builder.Services.AddDbContext<BakeryDbContext>(options =>
 });
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+builder.Services.AddAutoMapper(
+    config => { },
+    typeof(ProductMappingProfile));
 
 builder.Services.AddControllers();
 
