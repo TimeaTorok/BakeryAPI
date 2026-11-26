@@ -14,5 +14,16 @@ namespace BakeryManagement.Domain.Entities
 
         public Customer Customer { get; set; } = null!;
         public ICollection<OrderItem> Items { get; } = new List<OrderItem>();
+
+        public bool CanTransitionTo(OrderStatus nextStatus) =>
+            Status == nextStatus || Status switch
+            {
+                OrderStatus.Pending => nextStatus is OrderStatus.Confirmed or OrderStatus.Cancelled,
+                OrderStatus.Confirmed => nextStatus is OrderStatus.InPreparation or OrderStatus.Cancelled,
+                OrderStatus.InPreparation => nextStatus is OrderStatus.ReadyForPickup or OrderStatus.Cancelled,
+                OrderStatus.ReadyForPickup => nextStatus is OrderStatus.Completed or OrderStatus.Cancelled,
+                OrderStatus.Completed or OrderStatus.Cancelled => false,
+                _ => false
+            };
     }
 }

@@ -5,7 +5,11 @@ namespace BakeryManagement.Application.Interfaces.Services
 {
     public interface IProductService
     {
-        Task<PagedResult<ProductDto>> GetAllProductsAsync(int pageNumber, int pageSize, string? category, bool? isAvailable);
+        Task<PagedResult<ProductDto>> GetAllProductsAsync(
+            int pageNumber, 
+            int pageSize, 
+            string? category, 
+            bool? isAvailable);
         Task<ProductDto> GetProductByIdAsync(Guid id);
         Task<ProductDto> CreateProductAsync(CreateProductDto request);
         Task<ProductDto> UpdateProductAsync(Guid id, UpdateProductDto request);

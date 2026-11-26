@@ -4,5 +4,6 @@ namespace BakeryManagement.Application.Interfaces.Repositories
 {
     public interface ICustomerRepository : IGenericRepository<Customer>
     {
+        Task<bool> ExistsByEmailAsync(string email, Guid? excludingCustomerId = null);
     }
 }

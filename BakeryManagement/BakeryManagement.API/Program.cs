@@ -31,10 +31,16 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 
 builder.Services.AddAutoMapper(
     config => { },
-    typeof(ProductMappingProfile));
+    typeof(ProductMappingProfile),
+    typeof(CustomerMappingProfile),
+    typeof(OrderMappingProfile),
+    typeof(OrderItemMappingProfile));
 
 builder.Services.AddControllers();
 

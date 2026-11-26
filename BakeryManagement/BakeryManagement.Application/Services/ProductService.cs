@@ -32,8 +32,10 @@ namespace BakeryManagement.Application.Services
             ProductCategory? categoryFilter = string.IsNullOrWhiteSpace(category)
                 ? null
                 : ParseCategory(category);
+
             var page = await productRepository.FilterPageAsync(
                 pageNumber, pageSize, categoryFilter, isAvailable);
+
             logger.LogInformation(
                 "Retrieved products page {PageNumber} with page size {PageSize}, category {Category}, availability {IsAvailable}; returned {ResultCount} of {TotalCount} products",
                 page.PageNumber,
