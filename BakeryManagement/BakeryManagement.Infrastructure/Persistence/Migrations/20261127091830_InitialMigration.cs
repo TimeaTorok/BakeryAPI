@@ -8,11 +8,99 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BakeryManagement.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedData : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Customers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 254, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 32, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    Category = table.Column<string>(type: "TEXT", nullable: false),
+                    Price = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
+                    IsAvailable = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.CheckConstraint("CK_Products_Category", "[Category] IN ('Bread', 'Pastry', 'Cake', 'Cookie', 'Muffin', 'Other')");
+                    table.CheckConstraint("CK_Products_Price_NonNegative", "[Price] >= 0");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Status = table.Column<string>(type: "TEXT", nullable: false),
+                    Notes = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    TotalPrice = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.CheckConstraint("CK_Orders_Status", "[Status] IN ('Pending', 'Confirmed', 'InPreparation', 'ReadyForPickup', 'Completed', 'Cancelled')");
+                    table.CheckConstraint("CK_Orders_TotalPrice_NonNegative", "[TotalPrice] >= 0");
+                    table.ForeignKey(
+                        name: "FK_Orders_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderItems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    OrderId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ProductNameAtOrder = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    UnitPriceAtOrder = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
+                    Quantity = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.CheckConstraint("CK_OrderItems_Quantity_Positive", "[Quantity] > 0");
+                    table.CheckConstraint("CK_OrderItems_UnitPrice_NonNegative", "[UnitPriceAtOrder] >= 0");
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.InsertData(
                 table: "Customers",
                 columns: new[] { "Id", "Email", "FirstName", "LastName", "PhoneNumber" },
@@ -144,530 +232,44 @@ namespace BakeryManagement.Infrastructure.Persistence.Migrations
                     { new Guid("30000000-0000-0000-0000-000000000005"), new Guid("20000000-0000-0000-0000-000000000002"), new Guid("00000000-0000-0000-0000-000000000076"), "Classic Fudge Brownie", 1, 9.00m },
                     { new Guid("30000000-0000-0000-0000-000000000006"), new Guid("20000000-0000-0000-0000-000000000003"), new Guid("00000000-0000-0000-0000-000000000016"), "Butter Croissant", 1, 9.00m }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Customers_Email",
+                table: "Customers",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderId_ProductId",
+                table: "OrderItems",
+                columns: new[] { "OrderId", "ProductId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_ProductId",
+                table: "OrderItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CustomerId",
+                table: "Orders",
+                column: "CustomerId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(
-                table: "Customers",
-                keyColumn: "Id",
-                keyValue: new Guid("10000000-0000-0000-0000-000000000003"));
+            migrationBuilder.DropTable(
+                name: "OrderItems");
 
-            migrationBuilder.DeleteData(
-                table: "Customers",
-                keyColumn: "Id",
-                keyValue: new Guid("10000000-0000-0000-0000-000000000004"));
+            migrationBuilder.DropTable(
+                name: "Orders");
 
-            migrationBuilder.DeleteData(
-                table: "Customers",
-                keyColumn: "Id",
-                keyValue: new Guid("10000000-0000-0000-0000-000000000005"));
+            migrationBuilder.DropTable(
+                name: "Products");
 
-            migrationBuilder.DeleteData(
-                table: "OrderItems",
-                keyColumn: "Id",
-                keyValue: new Guid("30000000-0000-0000-0000-000000000001"));
-
-            migrationBuilder.DeleteData(
-                table: "OrderItems",
-                keyColumn: "Id",
-                keyValue: new Guid("30000000-0000-0000-0000-000000000002"));
-
-            migrationBuilder.DeleteData(
-                table: "OrderItems",
-                keyColumn: "Id",
-                keyValue: new Guid("30000000-0000-0000-0000-000000000003"));
-
-            migrationBuilder.DeleteData(
-                table: "OrderItems",
-                keyColumn: "Id",
-                keyValue: new Guid("30000000-0000-0000-0000-000000000004"));
-
-            migrationBuilder.DeleteData(
-                table: "OrderItems",
-                keyColumn: "Id",
-                keyValue: new Guid("30000000-0000-0000-0000-000000000005"));
-
-            migrationBuilder.DeleteData(
-                table: "OrderItems",
-                keyColumn: "Id",
-                keyValue: new Guid("30000000-0000-0000-0000-000000000006"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000002"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000003"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000004"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000005"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000006"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000007"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000008"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000009"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000010"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000011"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000012"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000013"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000014"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000015"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000017"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000019"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000020"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000021"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000022"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000023"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000024"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000025"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000026"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000027"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000028"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000029"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000030"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000032"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000033"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000034"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000035"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000036"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000037"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000038"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000039"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000040"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000041"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000042"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000043"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000044"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000045"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000046"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000047"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000048"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000049"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000050"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000051"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000052"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000053"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000054"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000055"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000056"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000057"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000058"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000059"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000060"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000061"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000063"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000064"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000065"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000066"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000067"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000068"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000069"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000070"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000071"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000072"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000073"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000074"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000075"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000077"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000078"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000079"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000080"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000081"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000082"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000083"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000084"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000085"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000086"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000087"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000088"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000089"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000090"));
-
-            migrationBuilder.DeleteData(
-                table: "Orders",
-                keyColumn: "Id",
-                keyValue: new Guid("20000000-0000-0000-0000-000000000001"));
-
-            migrationBuilder.DeleteData(
-                table: "Orders",
-                keyColumn: "Id",
-                keyValue: new Guid("20000000-0000-0000-0000-000000000002"));
-
-            migrationBuilder.DeleteData(
-                table: "Orders",
-                keyColumn: "Id",
-                keyValue: new Guid("20000000-0000-0000-0000-000000000003"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000001"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000016"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000018"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000031"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000062"));
-
-            migrationBuilder.DeleteData(
-                table: "Products",
-                keyColumn: "Id",
-                keyValue: new Guid("00000000-0000-0000-0000-000000000076"));
-
-            migrationBuilder.DeleteData(
-                table: "Customers",
-                keyColumn: "Id",
-                keyValue: new Guid("10000000-0000-0000-0000-000000000001"));
-
-            migrationBuilder.DeleteData(
-                table: "Customers",
-                keyColumn: "Id",
-                keyValue: new Guid("10000000-0000-0000-0000-000000000002"));
+            migrationBuilder.DropTable(
+                name: "Customers");
         }
     }
 }

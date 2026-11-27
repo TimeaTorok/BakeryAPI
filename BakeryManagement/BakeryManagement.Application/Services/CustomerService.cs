@@ -17,14 +17,17 @@ namespace BakeryManagement.Application.Services
     {
         public async Task<PagedResult<CustomerDto>> GetAllCustomersAsync(
             int pageNumber,
-            int pageSize)
+            int pageSize,
+            string? name)
         {
             PaginationValidator.Validate(pageNumber, pageSize);
-            var page = await customerRepository.GetPageAsync(pageNumber, pageSize);
+            var page = await customerRepository.SearchPageAsync(
+                pageNumber, pageSize, name?.Trim());
             logger.LogInformation(
-                "Retrieved customers page {PageNumber} with page size {PageSize}; returned {ResultCount} of {TotalCount} customers",
+                "Retrieved customers page {PageNumber} with page size {PageSize}, name {Name}; returned {ResultCount} of {TotalCount} customers",
                 page.PageNumber,
                 page.PageSize,
+                name,
                 page.Items.Count,
                 page.TotalCount);
 

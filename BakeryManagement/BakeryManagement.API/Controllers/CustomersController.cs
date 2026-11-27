@@ -18,8 +18,9 @@ namespace BakeryManagement.API.Controllers
             [FromQuery, Range(PaginationLimits.MinimumPageNumber, PaginationLimits.MaximumPageNumber)]
                 int pageNumber = PaginationLimits.DefaultPageNumber,
             [FromQuery, Range(PaginationLimits.MinimumPageSize, PaginationLimits.MaximumPageSize)]
-                int pageSize = PaginationLimits.DefaultPageSize) =>
-            Ok(await customerService.GetAllCustomersAsync(pageNumber, pageSize));
+                int pageSize = PaginationLimits.DefaultPageSize,
+            [FromQuery] string? name = null) =>
+            Ok(await customerService.GetAllCustomersAsync(pageNumber, pageSize, name));
 
         [HttpGet("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

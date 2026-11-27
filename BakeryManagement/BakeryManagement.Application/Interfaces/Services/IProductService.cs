@@ -9,7 +9,8 @@ namespace BakeryManagement.Application.Interfaces.Services
             int pageNumber, 
             int pageSize, 
             string? category, 
-            bool? isAvailable);
+            bool? isAvailable,
+            string? name);
         Task<ProductDto> GetProductByIdAsync(Guid id);
         Task<ProductDto> CreateProductAsync(CreateProductDto request);
         Task<ProductDto> UpdateProductAsync(Guid id, UpdateProductDto request);

@@ -20,8 +20,9 @@ namespace BakeryManagement.API.Controllers
             [FromQuery, Range(PaginationLimits.MinimumPageSize, PaginationLimits.MaximumPageSize)]
                 int pageSize = PaginationLimits.DefaultPageSize,
             [FromQuery] string? category = null,
-            [FromQuery] bool? isAvailable = null) =>
-            Ok(await productService.GetAllProductsAsync(pageNumber, pageSize, category, isAvailable));
+            [FromQuery] bool? isAvailable = null,
+            [FromQuery] string? name = null) =>
+            Ok(await productService.GetAllProductsAsync(pageNumber, pageSize, category, isAvailable, name));
 
         [HttpGet("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

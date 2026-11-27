@@ -6,6 +6,7 @@ using BakeryManagement.Application.Services;
 using BakeryManagement.Infrastructure.Persistence;
 using BakeryManagement.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,9 +21,22 @@ var connectionString = builder.Configuration
     ?? throw new InvalidOperationException(
         "Database connection string is missing.");
 
+var sqliteConnection = new SqliteConnectionStringBuilder(connectionString);
+if (!Path.IsPathRooted(sqliteConnection.DataSource))
+{
+    sqliteConnection.DataSource = Path.GetFullPath(
+        Path.Combine(builder.Environment.ContentRootPath, sqliteConnection.DataSource));
+}
+
+var databaseDirectory = Path.GetDirectoryName(sqliteConnection.DataSource);
+if (!string.IsNullOrEmpty(databaseDirectory))
+{
+    Directory.CreateDirectory(databaseDirectory);
+}
+
 builder.Services.AddDbContext<BakeryDbContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+    options.UseSqlite(sqliteConnection.ToString());
 });
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

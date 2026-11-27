@@ -14,13 +14,19 @@ namespace BakeryManagement.Infrastructure.Repositories
             int pageNumber, 
             int pageSize, 
             ProductCategory? category, 
-            bool? isAvailable)
+            bool? isAvailable,
+            string? name)
         {
             var query = _context.Products.AsNoTracking();
             if (category.HasValue) 
                 query = query.Where(product => product.Category == category.Value);
             if (isAvailable.HasValue) 
                 query = query.Where(product => product.IsAvailable == isAvailable.Value);
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var searchTerm = name.ToLower();
+                query = query.Where(product => product.Name.ToLower().Contains(searchTerm));
+            }
 
             var totalCount = await query.CountAsync();
             var items = await query

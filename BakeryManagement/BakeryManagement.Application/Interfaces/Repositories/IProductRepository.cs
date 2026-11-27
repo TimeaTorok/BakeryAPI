@@ -10,6 +10,7 @@ namespace BakeryManagement.Application.Interfaces.Repositories
             int pageNumber, 
             int pageSize, 
             ProductCategory? category, 
-            bool? isAvailable);
+            bool? isAvailable,
+            string? name);
     }
 }

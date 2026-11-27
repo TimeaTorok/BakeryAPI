@@ -25,7 +25,8 @@ namespace BakeryManagement.Application.Services
             int pageNumber,
             int pageSize,
             string? category,
-            bool? isAvailable)
+            bool? isAvailable,
+            string? name)
         {
             PaginationValidator.Validate(pageNumber, pageSize);
 
@@ -34,14 +35,15 @@ namespace BakeryManagement.Application.Services
                 : ParseCategory(category);
 
             var page = await productRepository.FilterPageAsync(
-                pageNumber, pageSize, categoryFilter, isAvailable);
+                pageNumber, pageSize, categoryFilter, isAvailable, name?.Trim());
 
             logger.LogInformation(
-                "Retrieved products page {PageNumber} with page size {PageSize}, category {Category}, availability {IsAvailable}; returned {ResultCount} of {TotalCount} products",
+                "Retrieved products page {PageNumber} with page size {PageSize}, category {Category}, availability {IsAvailable}, name {Name}; returned {ResultCount} of {TotalCount} products",
                 page.PageNumber,
                 page.PageSize,
                 category,
                 isAvailable,
+                name,
                 page.Items.Count,
                 page.TotalCount);
 
