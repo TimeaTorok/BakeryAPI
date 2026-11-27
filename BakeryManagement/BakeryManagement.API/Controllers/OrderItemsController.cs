@@ -22,6 +22,12 @@ namespace BakeryManagement.API.Controllers
             [FromQuery] Guid? orderId = null) =>
             Ok(await orderItemService.GetAllOrderItemsAsync(pageNumber, pageSize, orderId));
 
+        [HttpGet("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<OrderItemDto>> GetById(Guid id) =>
+            Ok(await orderItemService.GetOrderItemByIdAsync(id));
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -30,7 +36,7 @@ namespace BakeryManagement.API.Controllers
         public async Task<ActionResult<OrderItemDto>> Create(CreateOrderItemDto createOrderItem)
         {
             var orderItem = await orderItemService.CreateOrderItemAsync(createOrderItem);
-            return StatusCode(StatusCodes.Status201Created, orderItem);
+            return CreatedAtAction(nameof(GetById), new { id = orderItem.Id }, orderItem);
         }
 
         [HttpPut("{id:guid}")]

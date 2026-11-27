@@ -20,6 +20,14 @@ namespace BakeryManagement.Application.Services
     {
         private const decimal MaximumOrderTotal = 99_999_999.99m;
 
+        public async Task<OrderItemDto> GetOrderItemByIdAsync(Guid id)
+        {
+            var orderItem = await orderItemRepository.GetAsync(id)
+                ?? throw new EntityNotFoundException($"Order item '{id}' was not found.");
+
+            return mapper.Map<OrderItemDto>(orderItem);
+        }
+
         public async Task<PagedResult<OrderItemDto>> GetAllOrderItemsAsync(
             int pageNumber,
             int pageSize,

@@ -8,19 +8,22 @@ Bakery Management API helps a bakery manage its product catalog, customers, orde
 - Create customer orders, add products, calculate totals, and move orders through an allowed status lifecycle.
 - Preserve order history by preventing deletion of customers or products referenced by orders and retaining cancelled orders.
 - Validate input and referenced entities, prevent duplicate customer emails and duplicate products on an order, and return consistent API errors.
+- Include unit and integration test projects alongside the application.
 
 ## Project structure
 
-The solution uses Clean Architecture, split into four projects:
+The application uses Clean Architecture across four projects, with unit and integration tests in two additional projects:
 
-| Project                           | Responsibility                                                                                                                               | Where to look                                   |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `BakeryManagement.API`            | HTTP controllers, dependency injection, configuration, Swagger, and exception-to-HTTP handling.                                              | `Controllers/`, `Middleware/`, `Program.cs`     |
-| `BakeryManagement.Application`    | Use cases and business workflows, request/response DTOs, service and repository interfaces, mapping, pagination, and application exceptions. | `Services/`, `DTOs/`, `Interfaces/`, `Mapping/` |
-| `BakeryManagement.Domain`         | Core entities, enums, and domain rules that do not depend on HTTP or persistence.                                                            | `Entities/`, `Enums/`                           |
-| `BakeryManagement.Infrastructure` | EF Core SQLite persistence, entity configuration, repository implementations, migrations, and seed data.                                     | `Persistence/`, `Repositories/`                 |
+| Project                              | Responsibility                                                                                                                               | Where to look                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `BakeryManagement.API`               | HTTP controllers, dependency injection, configuration, Swagger, and exception-to-HTTP handling.                                              | `Controllers/`, `Middleware/`, `Program.cs`     |
+| `BakeryManagement.Application`       | Use cases and business workflows, request/response DTOs, service and repository interfaces, mapping, pagination, and application exceptions. | `Services/`, `DTOs/`, `Interfaces/`, `Mapping/` |
+| `BakeryManagement.Domain`            | Core entities, enums, and domain rules that do not depend on HTTP or persistence.                                                            | `Entities/`, `Enums/`                           |
+| `BakeryManagement.Infrastructure`    | EF Core SQLite persistence, entity configuration, repository implementations, migrations, and seed data.                                     | `Persistence/`, `Repositories/`                 |
+| `BakeryManagement.Tests.Unit`        | Unit tests for application services.                                                                                                         | `Services/<feature>/`                           |
+| `BakeryManagement.Tests.Integration` | Integration tests for API behavior.                                                                                                          | `Infrastructure/`, `<feature>/`                 |
 
-The API calls Application services. Application services use Domain entities and repository interfaces; Infrastructure implements those interfaces with EF Core. `Program.cs` connects the pieces through dependency injection.
+The API calls Application services. Application services use Domain entities and repository interfaces; Infrastructure implements those interfaces with EF Core. `Program.cs` connects the application projects through dependency injection.
 
 ## Requirements
 
@@ -156,6 +159,7 @@ Example: `GET /api/orders?pageNumber=1&pageSize=10&customerId={customerId}&statu
 | Method and route              | Behavior                                                                       |
 | ----------------------------- | ------------------------------------------------------------------------------ |
 | `GET /api/orderitems`         | Get a paged order item list. Supports `pageNumber`, `pageSize`, and `orderId`. |
+| `GET /api/orderitems/{id}`    | Get one order item by ID.                                                     |
 | `POST /api/orderitems`        | Attach an existing product to an existing order with a quantity.               |
 | `PUT /api/orderitems/{id}`    | Change an order item's quantity.                                               |
 | `DELETE /api/orderitems/{id}` | Remove an item from an order.                                                  |
@@ -169,3 +173,39 @@ Example: `GET /api/orderitems?pageNumber=1&pageSize=10&orderId={orderId}`.
 All collection endpoints are paged. Defaults are `pageNumber=1` and `pageSize=10`; page size must be between 1 and 100. Paged responses include `items`, `pageNumber`, `pageSize`, `totalCount`, and `totalPages`.
 
 Request DTO validation and application-level checks protect writes. The API verifies referenced entities exist and enforces rules such as unique customer emails, valid order transitions, and the one-product-per-order constraint. Errors are returned as Problem Details: validation errors use HTTP 400, missing entities use 404, and business conflicts use 409.
+
+## Tests
+
+Unit tests are grouped by domain area, such as `Products/` and `Customers/`, under `BakeryManagement.Tests.Unit/`. They use xUnit and Moq to isolate services from their dependencies.
+
+Integration tests are grouped by controller under `BakeryManagement.Tests.Integration/`; shared setup is in `Infrastructure/`, with controller tests and feature-specific bases in `Products/`, `Customers/`, `Orders/`, and `OrderItems/`. They use xUnit, `CustomWebApplicationFactory`, and an in-memory SQLite database.
+
+Run all unit and integration tests from the directory containing `BakeryManagement.slnx`:
+
+```sh
+dotnet test
+```
+
+## Code coverage
+
+Coverlet collects coverage during the test run, and ReportGenerator creates an HTML report. From the directory containing `BakeryManagement.slnx`, run the shared commands:
+
+```sh
+dotnet tool install --global dotnet-reportgenerator-globaltool
+dotnet test BakeryManagement.slnx --collect:"XPlat Code Coverage"
+reportgenerator "-reports:**/TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" "-reporttypes:Html" "-filefilters:-**/Persistence/Migrations/**/*.cs"
+```
+
+The `-filefilters` option excludes migration source files. The HTML report is generated in `coverage-report/` at the solution root. Open it with the command for your shell:
+
+PowerShell:
+
+```powershell
+Start-Process .\coverage-report\index.html
+```
+
+macOS:
+
+```sh
+open coverage-report/index.html
+```

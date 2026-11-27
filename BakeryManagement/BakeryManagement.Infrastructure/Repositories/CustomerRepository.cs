@@ -41,7 +41,7 @@ namespace BakeryManagement.Infrastructure.Repositories
 
         public Task<bool> ExistsByEmailAsync(string email, Guid? excludingCustomerId = null) =>
             _context.Customers.AnyAsync(customer =>
-                customer.Email == email &&
+                customer.Email.ToLower() == email.ToLower() &&
                 (!excludingCustomerId.HasValue || customer.Id != excludingCustomerId.Value));
 
     }

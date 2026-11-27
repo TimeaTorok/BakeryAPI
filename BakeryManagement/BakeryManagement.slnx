@@ -1,6 +1,8 @@
 <Solution>
+  <Project Path="BakeryManagement.API/BakeryManagement.API.csproj" />
   <Project Path="BakeryManagement.Application/BakeryManagement.Application.csproj" />
   <Project Path="BakeryManagement.Domain/BakeryManagement.Domain.csproj" />
   <Project Path="BakeryManagement.Infrastructure/BakeryManagement.Infrastructure.csproj" />
-  <Project Path="BakeryManagement.API/BakeryManagement.API.csproj" />
+  <Project Path="BakeryManagement.Tests.Integration/BakeryManagement.Tests.Integration.csproj" Id="dff1acc1-78f8-4b7e-8ad1-604abe1b7dfd" />
+  <Project Path="BakeryManagement.Tests.Unit/BakeryManagement.Tests.Unit.csproj" Id="05b847ab-3469-4b31-a851-e13f36ff6cf4" />
 </Solution>

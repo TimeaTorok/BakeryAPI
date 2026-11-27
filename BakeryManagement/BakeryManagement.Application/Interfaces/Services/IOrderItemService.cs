@@ -9,6 +9,7 @@ namespace BakeryManagement.Application.Interfaces.Services
             int pageNumber,
             int pageSize,
             Guid? orderId);
+        Task<OrderItemDto> GetOrderItemByIdAsync(Guid id);
         Task<OrderItemDto> CreateOrderItemAsync(CreateOrderItemDto request);
         Task<OrderItemDto> UpdateOrderItemAsync(Guid id, UpdateOrderItemDto request);
         Task DeleteOrderItemAsync(Guid id);
